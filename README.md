@@ -1,2 +1,2 @@
 # runvim
-Plugin to run files and markdown code block from within Neovim.
+Plugin to run files and markdown code blocks from within Neovim.
