@@ -14,7 +14,7 @@ local code_block = vim.treesitter.parse_query(
 
 local get_root = function(bufnr)
     local parser = vim.treesitter.get_parser(bufnr, "markdown", {})
-    local tree = parser.parse()[1]
+    local tree = parser:parse()[1]
     return tree:root()
 end
 
