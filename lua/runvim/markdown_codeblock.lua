@@ -26,7 +26,7 @@ U.get_codeblock_under_cursor = function()
         local language = code_block.captures[id]
         local start_row, _, end_row, _ = node:range()
         local linenr = vim.api.nvim_win_get_cursor(0)[1]
-        if start_row <= linenr <= end_row then
+        if start_row <= linenr and linenr <= end_row then
             vim.notify("Inside a code block of language" .. language)
         end
     end
