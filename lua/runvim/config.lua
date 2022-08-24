@@ -1,7 +1,13 @@
 local config = {}
 
+-- Default config
 config.options = {
-    commands = {},
+    commands = {
+        python = function(filename)
+            vim.cmd(":!python3 " .. filename)
+        end,
+        javascript = "node",
+    },
 }
 
 function config.set_options(opts)
