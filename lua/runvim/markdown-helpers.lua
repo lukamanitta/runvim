@@ -37,7 +37,6 @@ U.get_codeblock_under_cursor = function()
             local capture_name = code_block.captures[id]
             if capture_name == "language" then
                 code.language = tsquery.get_node_text(node, bufnr)
-                vim.notify("Found codeblock of language " .. code.language)
             elseif capture_name == "content" then
                 code.content = tsquery.get_node_text(node, bufnr)
             end
