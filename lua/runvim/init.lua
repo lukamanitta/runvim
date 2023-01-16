@@ -3,16 +3,57 @@ local options = {}
 local notify_options = { title = "runvim" }
 
 function M.run_file(filename)
-    bufnr = bufnr or vim.api.nvim_get_current_buf()
+    -- Open filename in hidden buffer and get its buffer number
+    local bufnr = vim.fn.bufnr(filename, true)
     local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
-    local filename = vim.api.nvim_buf_get_name(bufnr)
+    filename = vim.api.nvim_buf_get_name(bufnr)
 
     local run_command = options.commands[filetype]
     if type(run_command) == "string" then
-        local output =
-        vim.fn.trim(vim.fn.system(run_command .. " " .. filename))
-        vim.notify(output, vim.log.levels.INFO, notify_options)
-    else
+        -- Create a new buffer for results
+        local results_bufnr = vim.api.nvim_create_buf(false, true)
+
+        if options.result_window_type == "float" then
+            -- Open a float based on options.result_window_type
+            vim.api.nvim_open_win(
+                results_bufnr,
+                true,
+                options.float_window_options
+            )
+
+            -- Use vim.fn.jobstart
+            vim.fn.jobstart(run_command .. " " .. filename, {
+                stdout_buffered = true,
+                stderr_buffered = true,
+                on_stdout = function(_, data, _)
+                    if data then
+                        vim.api.nvim_buf_set_lines(
+                            results_bufnr,
+                            -1,
+                            -1,
+                            true,
+                            data
+                        )
+                    end
+                end,
+                on_stderr = function(_, data, _)
+                    if data then
+                        vim.api.nvim_buf_set_lines(
+                            results_bufnr,
+                            -1,
+                            -1,
+                            true,
+                            data
+                        )
+                    end
+                end,
+            })
+        elseif options.result_window_type == "notify" then
+            local output =
+            vim.fn.trim(vim.fn.system(run_command .. " " .. filename))
+            vim.notify(output, vim.log.levels.INFO, notify_options)
+        end
+    elseif type(run_command) == "function" then
         run_command(filename)
     end
 end
@@ -20,9 +61,15 @@ end
 local function _run_codeblock(code)
     local language = code.language
     local content = code.content
+
     -- Create tmp file buffer with codeblock content & correct filetype
-    -- _run_file with tmp buffer
-    vim.notify(content, vim.log.levels.INFO, notify_options)
+    local bufnr = vim.fn.bufnr()
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, content)
+    vim.api.nvim_buf_set_option(bufnr, "filetype", language)
+
+    -- Get bufnr filename and run _run_file
+    local filename = vim.api.nvim_buffer_get_name(bufnr)
+    M.run_file(filename)
 end
 
 function M.run_codeblock_under_cursor()
