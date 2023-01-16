@@ -1,5 +1,6 @@
 local M = {}
 local options = {}
+local notify_options = { title = "runvim" }
 
 function M.run_file(filename)
     bufnr = bufnr or vim.api.nvim_get_current_buf()
@@ -8,7 +9,9 @@ function M.run_file(filename)
 
     local run_command = options.commands[filetype]
     if type(run_command) == "string" then
-        vim.cmd(run_command .. filename)
+        local output =
+        vim.fn.trim(vim.fn.system(run_command .. " " .. filename))
+        vim.notify(output, vim.log.levels.INFO, notify_options)
     else
         run_command(filename)
     end
@@ -19,6 +22,7 @@ local function _run_codeblock(code)
     local content = code.content
     -- Create tmp file buffer with codeblock content & correct filetype
     -- _run_file with tmp buffer
+    vim.notify(content, vim.log.levels.INFO, notify_options)
 end
 
 function M.run_codeblock_under_cursor()
@@ -34,23 +38,34 @@ function M.run_named_codeblocks(filename, cb_names)
     local bufnr = 0
 
     for _, cb_name in ipairs(cb_names) do
-        local codeblock = require("runvim.markdown-helpers").get_codeblock_from_name(bufnr, cb_name)
+        local codeblock =
+        require("runvim.markdown-helpers").get_codeblock_from_name(
+            bufnr,
+            cb_name
+        )
 
         -- Ensure all codeblocks are of the same language
         if all_codeblock_language ~= nil then
             if codeblock.language ~= all_codeblock_language then
                 vim.notify(
                     "The codeblocks provided are not all of the same language.",
-                    vim.log.levels.ERROR
+                    vim.log.levels.ERROR,
+                    notify_options
                 )
                 return
             end
+        else
+            all_codeblock_language = codeblock.language
         end
-        all_codeblock_language = codeblock.language
 
         table.insert(codeblocks, codeblock)
     end
+
+    for _, codeblock in ipairs(codeblocks) do
+        _run_codeblock(codeblock)
+    end
 end
+
 function M.run()
     if vim.api.nvim_buf_get_option(0, "filetype") == "markdown" then
         M.run_codeblock_under_cursor()
@@ -75,21 +90,20 @@ function M.setup(opts)
     end, {
         desc = "Run a file given the filename.",
     })
-    vim.api.nvim_create_user_command("RunCodeblock", function()
-        M.run_codeblock_under_cursor()
+    vim.api.nvim_create_user_command("RunCodeblock", function(opts)
+        -- M.run_codeblock_under_cursor()
+        if opts.fargs[1] ~= nil then
+            local filename = vim.api.nvim_buf_get_name(0)
+            local cb_names = opts.fargs
+            M.run_named_codeblocks(filename, cb_names)
+        else
+            M.run_codeblock_under_cursor()
+        end
     end, {
+        nargs = "*",
         desc = "Run the codeblock under the cursor.",
     })
-    vim.api.nvim_create_user_command("RunNamedCodeblock", function(cmd_opts)
-        local filename = vim.api.nvim_buf_get_name(0)
-        local cb_names = cmd_opts.fargs
-        vim.notify("Running RunNamedCodeblock")
-        M.run_named_codeblocks(filename, cb_names)
-    end, {
-        nargs = "+",
-        desc = "Run one or a list of named codeblocks from a given file consecutively.",
-    })
-    vim.api.nvim_create_user_command("RunNamedCodeblockInFile", function(cmd_opts)
+    vim.api.nvim_create_user_command("RunCodeblockInFile", function(cmd_opts)
         local filename = cmd_opts.fargs[1]
         local cb_names = { unpack(cmd_opts.fargs, 2, -1) }
         M.run_named_codeblocks(filename, cb_names)
