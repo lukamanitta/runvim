@@ -13,11 +13,18 @@ config.options = {
         border = "single",
         focusable = false,
     },
-    commands = {
+    rules = {
         python = function(filename)
             vim.cmd(":!python3 " .. filename)
         end,
-        javascript = "node",
+        javascript = {
+            command = "node",
+            with_filename = true,
+        },
+        rust = {
+            command = "cargo run",
+            with_filename = false,
+        },
     },
 }
 
