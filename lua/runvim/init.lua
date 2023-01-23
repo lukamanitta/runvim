@@ -51,8 +51,7 @@ function M.run_file(filename)
             )
             _output_command_to_buffer(command_to_run, results_bufnr)
         elseif options.result_window_type == "notify" then
-            local output =
-            vim.fn.trim(vim.fn.system(filetype_rule .. " " .. filename))
+            local output = vim.fn.trim(vim.fn.system(command_to_run))
             vim.notify(output, vim.log.levels.INFO, notify_options)
         end
     elseif type(filetype_rule) == "function" then
