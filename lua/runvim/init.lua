@@ -123,8 +123,8 @@ function M.run()
     end
 end
 
-function M.setup(opts)
-    require("runvim.config").set_options(opts)
+function M.setup(user_opts)
+    require("runvim.config").set_options(user_opts)
     options = require("runvim.config").options
 
     vim.api.nvim_create_user_command("Run", function()
