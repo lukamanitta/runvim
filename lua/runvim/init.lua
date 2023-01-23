@@ -37,10 +37,7 @@ local function _build_command(rule, filename)
 end
 
 function M.run_file(filename)
-    -- Open filename in hidden buffer and get its buffer number
-    local bufnr = vim.fn.bufnr(filename, true)
-    local filetype = vim.api.nvim_buf_get_option(bufnr, "filetype")
-    filename = vim.api.nvim_buf_get_name(bufnr)
+    local filetype = vim.filetype.match({ filename = filename })
 
     local filetype_rule = options.rules[filetype]
     if type(filetype_rule) == "table" then
