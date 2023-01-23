@@ -2,7 +2,7 @@ local config = {}
 
 -- Default config
 config.options = {
-    result_window_type = "notify", -- 'float', 'bot', 'top', 'left', 'right', 'notify'
+    result_window_type = "float", -- 'float', 'bot', 'top', 'left', 'right', 'notify'
     float_window_options = {
         relative = "editor",
         width = 80,
@@ -14,6 +14,12 @@ config.options = {
         focusable = false,
     },
     rules = {
+        lua = function(filename)
+            vim.cmd(":source " .. filename)
+        end,
+        vim = function(filename)
+            vim.cmd(":source " .. filename)
+        end,
         python = function(filename)
             vim.cmd(":!python3 " .. filename)
         end,
