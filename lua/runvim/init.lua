@@ -79,11 +79,12 @@ function M.run_codeblock_under_cursor()
 end
 
 function M.run_named_codeblocks(filename, cb_names)
-    local codeblocks = {}
     local all_codeblock_language
 
     -- Open buffer from filename if not already open
-    local bufnr = 0
+    local bufnr = vim.fn.bufnr(filename, true)
+
+    local combined_codeblocks = {}
 
     for _, cb_name in ipairs(cb_names) do
         local codeblock =
@@ -105,13 +106,16 @@ function M.run_named_codeblocks(filename, cb_names)
         else
             all_codeblock_language = codeblock.language
         end
-
-        table.insert(codeblocks, codeblock)
+        table.insert(combined_codeblocks, unpack(codeblock.content))
     end
 
-    for _, codeblock in ipairs(codeblocks) do
-        _run_codeblock(codeblock)
-    end
+    _run_codeblock({
+        language = all_codeblock_language,
+        content = combined_codeblocks,
+    })
+
+    -- Close buffer
+    vim.api.nvim_buf_delete(bufnr, { force = true })
 end
 
 function M.run()
