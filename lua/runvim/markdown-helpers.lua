@@ -15,7 +15,7 @@ tsquery.add_predicate("under-cursor?", function(match, _, _, pred)
     return start_row <= linenr and linenr <= end_row
 end)
 
-U.get_codeblock_under_cursor = function()
+function U.get_codeblock_under_cursor()
     local code_block = ts.parse_query(
         "markdown",
         [[
@@ -38,14 +38,15 @@ U.get_codeblock_under_cursor = function()
             if capture_name == "language" then
                 code.language = tsquery.get_node_text(node, bufnr)
             elseif capture_name == "content" then
-                code.content = tsquery.get_node_text(node, bufnr)
+                code.content =
+                { tsquery.get_node_text(node, bufnr, { concat = true }) }
             end
         end
     end
     return code
 end
 
-U.get_codeblock_from_name = function(bufnr, cb_name)
+function U.get_codeblock_from_name(bufnr, cb_name)
     local named_code_block = ts.parse_query("markdown", [[
 (fenced_code_block
     ((info_string
@@ -64,7 +65,8 @@ U.get_codeblock_from_name = function(bufnr, cb_name)
             if capture_name == "language" then
                 code.language = tsquery.get_node_text(node, bufnr)
             elseif capture_name == "content" then
-                code.content = tsquery.get_node_text(node, bufnr)
+                code.content =
+                { tsquery.get_node_text(node, bufnr, { concat = true }) }
             end
         end
     end
