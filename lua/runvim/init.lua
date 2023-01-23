@@ -62,14 +62,8 @@ end
 local function _run_codeblock(code)
     local language = code.language
     local content = code.content
-
-    -- Create tmp file buffer with codeblock content & correct filetype
-    local bufnr = vim.fn.bufnr()
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, content)
-    vim.api.nvim_buf_set_option(bufnr, "filetype", language)
-
-    -- Get bufnr filename and run _run_file
-    local filename = vim.api.nvim_buffer_get_name(bufnr)
+    local filename = vim.fn.tempname() .. "." .. language
+    vim.fn.writefile(content, filename)
     M.run_file(filename)
 end
 
