@@ -16,6 +16,15 @@ local function _output_command_to_buffer(command_to_run, bufnr)
                 vim.api.nvim_buf_set_lines(bufnr, -1, -1, true, data)
             end
         end,
+        on_exit = function(_, exit_code, _)
+            if exit_code ~= 0 then
+                vim.notify(
+                    "Error running command",
+                    vim.log.levels.INFO,
+                    notify_options
+                )
+            end
+        end,
     })
 end
 
